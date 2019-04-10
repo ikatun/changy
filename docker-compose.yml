@@ -1,0 +1,12 @@
+version: '3'
+services:
+ changy:
+   container_name: changy
+   image: postgres:10-alpine
+   restart: always
+   ports:
+   - "22290:5432"
+   environment:
+     POSTGRES_USER: user
+     POSTGRES_PASSWORD: 1234
+     POSTGRES_DB: changy
