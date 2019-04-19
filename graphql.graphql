@@ -6,6 +6,43 @@ scalar DateTime
 """ID scalar type"""
 scalar EntityId
 
+type FetchRequest {
+  headers: JSON
+  method: String
+  redirect: String
+  agent: HttpOptionsInput
+  compress: Boolean
+  follow: Float
+  size: Float
+  timeout: Float
+}
+
+input FetchRequestInput {
+  headers: JSON
+  method: String
+  redirect: String
+  agent: HttpAgentOptions
+  compress: Boolean
+  follow: Float
+  size: Float
+  timeout: Float
+}
+
+input HttpAgentOptions {
+  rejectUnauthorized: Boolean
+  timeout: Float
+}
+
+type HttpOptionsInput {
+  rejectUnauthorized: Boolean
+  timeout: Float
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 type LoginResponse {
   token: String!
   user: User!
@@ -15,9 +52,18 @@ type Mutation {
   emailRegister(input: UserCreateInput!): LoginResponse!
   emailLogin(password: String!, email: String!): LoginResponse!
   logout: Boolean!
+  createPrimaryListener(input: PrimaryListenerCreateInput!): PrimaryListener!
+  updatePrimaryListener(input: PrimaryListenerEditInput!): PrimaryListener!
+  deletePrimaryListeners(ids: [ID!]!): Boolean!
   forgotPassword(email: String!): Boolean!
   resetPassword(newPassword: String!, forgotPasswordCode: String!): LoginResponse!
   changePassword(newPassword: String!, oldPassword: String!): Boolean!
+  createSecondaryListener(input: SecondaryListenerCreateInput!): SecondaryListener!
+  updateSecondaryListener(input: SecondaryListenerEditInput!): SecondaryListener!
+  deleteSecondaryListeners(ids: [ID!]!): Boolean!
+  createSource(input: SourceCreateInput!): Source!
+  updateSource(input: SourceEditInput!): Source!
+  deleteSources(ids: [ID!]!): Boolean!
   createUser(input: UserCreateInput!): User!
   updateUser(input: UserEditInput!): User!
   deleteUsers(ids: [ID!]!): Boolean!
@@ -28,6 +74,27 @@ enum OrderEnum {
   ASC
 }
 
+type PaginatedPrimaryListenerResponse {
+  items: [PrimaryListener!]!
+  total: Int!
+  hasMore: Boolean!
+  nextPage: Int!
+}
+
+type PaginatedSecondaryListenerResponse {
+  items: [SecondaryListener!]!
+  total: Int!
+  hasMore: Boolean!
+  nextPage: Int!
+}
+
+type PaginatedSourceResponse {
+  items: [Source!]!
+  total: Int!
+  hasMore: Boolean!
+  nextPage: Int!
+}
+
 type PaginatedUserResponse {
   items: [User!]!
   total: Int!
@@ -35,10 +102,144 @@ type PaginatedUserResponse {
   nextPage: Int!
 }
 
+type PrimaryListener {
+  id: EntityId!
+  url: String!
+  source: Source!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input PrimaryListenerCreateInput {
+  url: String!
+  source: SourceNestedInput!
+}
+
+input PrimaryListenerEditInput {
+  id: EntityId!
+  url: String
+  source: SourceNestedInput
+}
+
+input PrimaryListenerNestedInput {
+  id: EntityId
+  url: String
+  source: SourceNestedInput
+}
+
+input PrimaryListenerSearchInput {
+  id: EntityId
+  url: String
+  source: ReferenceSearchInput
+}
+
+input PrimaryListenerSearchOrderInput {
+  id: OrderEnum
+  url: OrderEnum
+  source: OrderEnum
+}
+
 type Query {
+  primaryListener(id: EntityId!): PrimaryListener!
+  searchPrimaryListeners(order: [PrimaryListenerSearchOrderInput!], take: Int, skip: Int, search: PrimaryListenerSearchInput): PaginatedPrimaryListenerResponse!
+  primaryListeners: [PrimaryListener!]!
+  secondaryListener(id: EntityId!): SecondaryListener!
+  searchSecondaryListeners(order: [SecondaryListenerSearchOrderInput!], take: Int, skip: Int, search: SecondaryListenerSearchInput): PaginatedSecondaryListenerResponse!
+  secondaryListeners: [SecondaryListener!]!
+  source(id: EntityId!): Source!
+  searchSources(order: [SourceSearchOrderInput!], take: Int, skip: Int, search: SourceSearchInput): PaginatedSourceResponse!
+  sources: [Source!]!
   user(id: EntityId!): User!
   searchUsers(order: [UserSearchOrderInput!], take: Int, skip: Int, search: UserSearchInput): PaginatedUserResponse!
   users: [User!]!
+}
+
+input ReferenceSearchInput {
+  id: EntityId
+}
+
+type SecondaryListener {
+  id: EntityId!
+  url: String!
+  source: Source
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input SecondaryListenerCreateInput {
+  url: String!
+  source: SourceNestedInput
+}
+
+input SecondaryListenerEditInput {
+  id: EntityId!
+  url: String
+  source: SourceNestedInput
+}
+
+input SecondaryListenerSearchInput {
+  id: EntityId
+  url: String
+  source: ReferenceSearchInput
+}
+
+input SecondaryListenerSearchOrderInput {
+  id: OrderEnum
+  url: OrderEnum
+  source: OrderEnum
+}
+
+type Source {
+  id: EntityId!
+  intervalSeconds: Float!
+  url: String!
+  owner: User!
+  secondaryListeners: [SecondaryListener!]!
+  primaryListener: PrimaryListener
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  hash: String!
+  config: FetchRequest
+  lastRefreshTime: DateTime!
+}
+
+input SourceCreateInput {
+  intervalSeconds: Float!
+  url: String!
+  primaryListener: PrimaryListenerNestedInput
+  config: FetchRequestInput
+}
+
+input SourceEditInput {
+  id: EntityId!
+  intervalSeconds: Float
+  url: String
+  primaryListener: PrimaryListenerNestedInput
+  config: FetchRequestInput
+}
+
+input SourceNestedInput {
+  id: EntityId
+  intervalSeconds: Float
+  url: String
+  primaryListener: PrimaryListenerNestedInput
+  config: FetchRequestInput
+}
+
+input SourceSearchInput {
+  id: EntityId
+  intervalSeconds: Float
+  url: String
+  owner: ReferenceSearchInput
+  primaryListener: ReferenceSearchInput
+}
+
+input SourceSearchOrderInput {
+  id: OrderEnum
+  intervalSeconds: OrderEnum
+  url: OrderEnum
+  owner: OrderEnum
+  primaryListener: OrderEnum
 }
 
 type User {
@@ -46,6 +247,7 @@ type User {
   email: String!
   firstName: String!
   lastName: String!
+  sources: [Source!]!
   createdAt: DateTime!
   updatedAt: DateTime!
   fullName: String!

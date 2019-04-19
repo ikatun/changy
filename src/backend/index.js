@@ -5,4 +5,5 @@ require("ts-node").register({
 require("dotenv").config();
 require("reflect-metadata");
 
+process.env.TZ = 'UTC';
 require("./server/app");

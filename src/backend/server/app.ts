@@ -3,14 +3,16 @@ import * as appRoot from 'app-root-path';
 import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
-import * as asyncWrap from 'express-async-wrapper';
+import * as GraphQLJSON from 'graphql-type-json';
 import { GraphQLServer, Options } from 'graphql-yoga';
 import * as Raven from 'raven';
 import { buildSchema } from 'type-graphql';
 import { createConnection } from 'typeorm';
 
 import { connectionOptions } from '../../../ormconfig/ormconfig';
+import { refreshForever } from '../services/fetch-pending-sources';
 import { AuthorizationMiddleware } from '../utils/auth/AuthorizationMiddleware';
+import { Json } from '../utils/json';
 import config from './config';
 import { createGraphqlContext } from './create-graphql-context';
 import { formatError, ravenMiddleware } from './format-error';
@@ -31,6 +33,7 @@ async function bootstrap() {
       appRoot.resolve('src/backend/data/field-resolvers/*.ts'),
     ],
     globalMiddlewares: [AuthorizationMiddleware],
+    scalarsMap: [{ type: Json, scalar: GraphQLJSON }],
     validate: false,
   });
   createGraphqlFile(schema);
@@ -75,6 +78,7 @@ async function bootstrap() {
     console.log(
       `Server is running, GraphQL Playground available at http://localhost:${config.port}${playground}`,
     );
+    refreshForever();
   });
 }
 

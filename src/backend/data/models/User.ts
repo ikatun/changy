@@ -15,6 +15,7 @@ import { UserCreateInput } from '../inputs/UserCreateInput';
 import { UserEditInput } from '../inputs/UserEditInput';
 import { UserNestedInput } from '../inputs/UserNestedInput';
 import { IRequestContext } from '../IRequestContext';
+import { Source } from './Source';
 import {  } from './update-operations/user-update-operations';
 
 // <keep-imports>
@@ -70,6 +71,10 @@ export class User implements IAuthorizable {
     // </custom-column-args>
   })
   public role: UserRole;
+
+  @OneToMany(() => Source, (source) => source.owner)
+  @Field(() => [Source])
+  public sources: Promise<Array<Source>>;
 
   @CreateDateColumn()
   @Field()

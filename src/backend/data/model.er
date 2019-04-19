@@ -1,12 +1,3 @@
-# Tables are defined by first capital letter and : at the end
-# - sign defines a field which is persisted in the database, visible in the create and edit mutations and queries
-# + sign defines a field which is not persisted in the database, visible in edit and create mutations, but not in database or queries
-# x sign defines a field which is persisted in the database, but not visible in queries or mutations
-# Adding a question mark at the end of the field name marks the field as optional
-# All fields are strings by default
-# If field is not string, first type written after : character is typescript type
-# If field has typescript type defined, database type for the field can be defined by adding it after the typescript type
-
 User:
   - email: string varchar
   + passwordHash: string varchar
@@ -16,3 +7,26 @@ User:
   + forgotPasswordCode?: string varchar
   + role: ADMIN|USER
 
+Source:
+  - intervalSeconds: number integer
+  - url: string text
+  + lastRefreshTime: Date
+  + hash
+  + requestConfig?: string text
+
+PrimaryListener:
+  - url: string text
+  + requestConfig?: string text
+
+SecondaryListener:
+  - url: string text
+  + requestConfig?: string text
+
+User has many Source as sources
+Source has one User as owner = context.user
+
+Source has one PrimaryListener as primaryListener?
+PrimaryListener has one Source as source
+
+Source has many SecondaryListener as secondaryListeners
+SecondaryListener has one Source as source?
